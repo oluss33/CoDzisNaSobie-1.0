@@ -1,20 +1,39 @@
 import flet as ft
 from flet import MainAxisAlignment, CrossAxisAlignment
 import views
+import sqlite3
+import database_manager
 def main(page: ft.Page):
 
-    login_view_type_shit = views.LoginView(page)
+    def on_logout_success():
+        body_container.content = login_view_type_shit
+        page.update()
+
+    def on_login_success():
+        body_container.content = views.AccountView(page, on_logout_success)
+        page.update()
+    #print("testuje cos, ", page.session.store.get("user"))
+
+    connection = sqlite3.connect("../tests/test-db.db")
+    login_view_type_shit = views.AuthView(page, connection, on_login_success)
     search_view = views.SearchView(page)
     body_container = ft.Container(content = search_view, expand = True)
+
     def on_navbar_change(e):
         selected_index = e.control.selected_index
 
         if selected_index == 0:
             body_container.content = search_view
         if selected_index == 1:
-            body_container.content = login_view_type_shit
+            user = page.session.store.get("username")
+            if not user:
+                body_container.content = login_view_type_shit
+            else:
+                on_login_success()
         if selected_index == 2:
             print("favorites kliknieto")
+
+        page.update()
 
     navbar = ft.Tabs(selected_index = 0, on_change = on_navbar_change,
         length=3,
@@ -51,6 +70,12 @@ def main(page: ft.Page):
 
     #page.add(navbar,header, layout, columns, weather_container)
     page.add(navbar, header, body_container)
+
+    def on_exit(e):
+        database_manager.close_db(connection)
+    page.on_disconnect = on_exit
+
+
 
 if __name__ == "__main__":
     ft.run(main)
