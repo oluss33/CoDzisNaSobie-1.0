@@ -2,6 +2,8 @@ import flet as ft
 import api
 import custom_charts
 import database_manager
+import json_manager
+
 class AuthView(ft.Column):
     def __init__(self, page, connection, on_login_success = None):
         super().__init__()
@@ -80,8 +82,6 @@ class AuthView(ft.Column):
                 self.my_page.session.store.set("username", username)
                 self.my_page.session.store.set("id", database_manager.get_user_id(self.connection, username, password))
 
-                print(self.my_page.session.store.get("username"))
-                print(self.my_page.session.store.get("id"))
 
                 if self.on_login_success:
                     self.on_login_success()
@@ -91,16 +91,37 @@ class AuthView(ft.Column):
 class AccountView(ft.Column):
     def __init__(self, page, on_logout_success = None):
         super().__init__()
-        self.horizontal_alignment = ft.CrossAxisAlignment.START
+        self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.my_page = page
         self.on_logout_sucess = on_logout_success
-
+        self.width = 600
         username = self.my_page.session.store.get("username")
         self.header_test = ft.Text(f"Witaj, {username}")
 
         self.logout_btn = ft.Button(content = ft.Text("Log out", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED_400, on_click=self.logout)
 
-        self.controls = [self.header_test, self.logout_btn]
+        saved = json_manager.get_user_activities(self.my_page.session.store.get("id"))
+        print(saved)
+        self.is_running = "running" in saved
+
+        self.btn_running = ft.Button(content="Bieganie", color=ft.Colors.BLACK if self.is_running else ft.Colors.WHITE,width=200,bgcolor=None if not self.is_running else ft.Colors.GREEN_700, on_click=self.toggle_running)
+
+        self.controls = [self.header_test, self.btn_running, self.logout_btn]
+
+    def toggle_running(self):
+        self.is_running = not self.is_running
+        self.btn_running.bgcolor = None if not self.is_running else ft.Colors.GREEN_700
+        self.btn_running.color = ft.Colors.BLACK if self.is_running else ft.Colors.WHITE
+        self.btn_running.update()
+        self.save_activities()
+
+    def save_activities(self):
+        active_activities = []
+
+        if self.is_running:
+            active_activities.append("running")
+
+        json_manager.save_user_activities(self.my_page.session.store.get("id"), active_activities)
 
     def logout(self):
         self.my_page.session.store.set("username", None)
@@ -170,8 +191,10 @@ class SearchView(ft.Column):
                         ft.Text(f"Temperatura: {temperature}°C", size=16),
                         ft.Text(f"Wiatr: {wind} km / h", size=16),
                         my_chart]))]))
+            favorites_btn = ft.Button(icon=ft.Icons.STAR)
 
 
             self.weather_container.controls.append(info_card)
+            self.weather_container.controls.append(favorites_btn)
             self.my_page.update()
         return on_click_handler

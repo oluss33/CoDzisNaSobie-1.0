@@ -17,7 +17,7 @@ def main(page: ft.Page):
     connection = sqlite3.connect("../tests/test-db.db")
     login_view_type_shit = views.AuthView(page, connection, on_login_success)
     search_view = views.SearchView(page)
-    body_container = ft.Container(content = search_view, expand = True)
+    body_container = ft.Container(content = search_view, expand = True,)
 
     def on_navbar_change(e):
         selected_index = e.control.selected_index

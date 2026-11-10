@@ -52,7 +52,7 @@ def login_user(connection, login, password):
     result = cursor.fetchone()
 
     if result is None:
-        print("Taki skurwiel nie istnieje")
+        print(" nie ma takiej osoby")
         return False
 
     db_password = result[0]

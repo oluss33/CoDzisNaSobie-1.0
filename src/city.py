@@ -23,4 +23,4 @@ class City:
         return self.__lon
 
     def __str__(self):
-        return f"jestem kurwa miastem {self.name}"
+        return f"jestem miastem {self.name}"
