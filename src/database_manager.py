@@ -1,4 +1,5 @@
 import sqlite3
+import bcrypt #do hashowania hasel
 
 create_table = """
     CREATE TABLE IF NOT EXISTS users (
@@ -15,8 +16,13 @@ def connect_db(connection):
     cursor.execute(create_table)
 
 
-def add_user(connection, task):
-    username = task[0]
+def add_user(connection, username, password):
+
+    salt = bcrypt.gensalt()
+
+    hashedpass = bcrypt.hashpw(password.encode("utf-8"), salt)
+
+    # TODO: HASH PASSWORD (SALT + STORE HASH)
     security_sql = """
     SELECT user_id FROM users WHERE user_name = ?"""
     register_sql = """INSERT INTO users (user_name, password) VALUES(?, ?)"""
@@ -28,16 +34,16 @@ def add_user(connection, task):
     if cursor.fetchone() is not None:
         print("jest juz taki uzytkownik!!!!!")
         return False
-    cursor.execute(register_sql, task)
+    cursor.execute(register_sql, (username, hashedpass.decode("utf-8")))
     connection.commit()
     return True
 
 def get_user_id(connection, login, password):
     get_sql = """
-    SELECT user_id FROM users WHERE user_name = ? AND password = ?"""
+    SELECT user_id FROM users WHERE user_name = ?"""
 
     cursor = connection.cursor()
-    cursor.execute(get_sql, (login, password))
+    cursor.execute(get_sql, (login,))
 
     result = cursor.fetchone()
 
@@ -57,7 +63,7 @@ def login_user(connection, login, password):
 
     db_password = result[0]
 
-    if db_password == password:
+    if bcrypt.checkpw(password.encode("utf-8"), db_password.encode("utf-8")):
         print("zalogowano pomyslnie")
         return True
     else:

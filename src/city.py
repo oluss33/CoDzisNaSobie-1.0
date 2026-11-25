@@ -1,10 +1,18 @@
+import json_manager
+
+
 class City:
-    def __init__(self, name, country, admin, lat, lon):
+    def __init__(self, page, name, country, admin, lat, lon, is_favorite = None):
+        self.__page = page
         self.__name = name
         self.__country = country
         self.__admin = admin
         self.__lat = lat
         self.__lon = lon
+        if not is_favorite:
+            self.is_favorite = json_manager.is_city_favorite(page.session.store.get("id"), name)
+        else:
+            self.is_favorite = is_favorite
 
     @property
     def name(self):

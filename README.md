@@ -1,5 +1,7 @@
 # CoDzisNaSobie app
 
+Co Dziś na Sobie? to aplikacja desktopowa, która pomaga zaplanować dzień na podstawie aktualnej pogody. Użytkownik wpisuje nazwę miasta, a program pobiera dane pogodowe z API Open Meteo. Na ich podstawie aplikacja wyświetla temperaturę, wysokość opadów, siłę wiatru, jakość powietrza, rysuje wykres prognozy oraz generuje spersonalizowane porady, np. “weź parasol”, “załóż kurtkę”, czy nawet “najlepsze okno na bieganie to 17:00-18:30”. Porady będą uwzględniać profil użytkownika (np. Czy łatwo marznie, biega, jeździ rowerem), który zapisuje się w ustawieniach (plik json). Do pliku zapisywane będą również m.in ulubione miasta, w których pogodę śledzi użytkownik. Każde konto i podstawowe informacje o nim (w tym hashowane hasło) znajdują się w bazie danych, komunikującą się z kodem za pomocą SQLite3
+
 ## Run the app
 
 ### uv

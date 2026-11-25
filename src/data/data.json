@@ -1,1 +1,36 @@
-{"4": {"active_activities": []}, "7": {"active_activities": ["running"]}}
+{
+    "2": {
+        "active_activities": []
+    },
+    "3": {
+        "active_activities": [
+            "cycling",
+            "wind_sensitive",
+            "often_sick",
+            "often_walking"
+        ],
+        "cities": {
+            "Wroc\u0142aw": [
+                17.03006,
+                51.10286,
+                "Polska",
+                "Wojew\u00f3dztwo dolno\u015bl\u0105skie"
+            ],
+            "Warszawa": [
+                21.01178,
+                52.22977,
+                "Polska",
+                "Wojew\u00f3dztwo mazowieckie"
+            ]
+        }
+    },
+    "1": {
+        "active_activities": [
+            "cold",
+            "gym",
+            "wind_sensitive",
+            "often_sick",
+            "often_walking"
+        ]
+    }
+}

@@ -52,10 +52,13 @@ def get_weather(name, latitude, longitude):
 
     temperature = data["current"]["temperature_2m"]
     wind = data["current"]["wind_speed_10m"]
-
+    snowfall = data["current"]["snowfall"]
+    rain = data["current"]["rain"]
     print(f"POGODA DLA {name.upper()}")
     print(f"tempeartura: {temperature}")
     print(f"wiatr: {wind} km/h")
+    print(f"deszcz: {snowfall}")
+    print(f"snieg: {rain}")
 
 miasto = input("miasto: ")
 city_list = szukaj(miasto)

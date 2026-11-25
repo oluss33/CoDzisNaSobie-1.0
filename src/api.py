@@ -3,13 +3,14 @@ import urllib.request
 import json
 from city import City
 from weather import Weather
+import datetime
 
 HEADER = {"User-Agent": "CoDzisNaSobie/1.0"}
 
 def fetch_json(url):
     req = urllib.request.Request(url, headers=HEADER)
     return req
-def find_city(city):
+def find_city(city, page): # TODO: remove page from arguments, move checking to the find_weather in views.py
     founds = []
 
     safe_city = urllib.parse.quote(city.encode("utf-8"))
@@ -36,7 +37,7 @@ def find_city(city):
             lon = _city.get("longitude")
             admin1 = _city.get("admin1")
 
-            founds.append(City(name, country, admin1, lat, lon))
+            founds.append(City(page, name, country, admin1, lat, lon))
             # founds.append((name, country, admin1, lat, lon))
 
         print(founds)
@@ -48,21 +49,67 @@ def find_city(city):
     return founds
 
 def get_weather(name, latitude, longitude):
-    my_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m&forecast_days=1"
+    my_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m,pressure_msl,weather_code&hourly=temperature_2m,pressure_msl,precipitation,precipitation_probability,snowfall,rain&timezone=auto&forecast_days=1"
 
     request = fetch_json(my_url)
 
-    with urllib.request.urlopen(request) as response:
+    with urllib.request.urlopen(request, timeout=45) as response:
         data = json.loads(response.read().decode("utf-8"))
 
     temperature = data["current"]["temperature_2m"]
     wind = data["current"]["wind_speed_10m"]
+    pressure = data["current"]["pressure_msl"]
+    weather_code = data["current"]["weather_code"]
 
+   # hour = datetime.datetime.now().hour # opady filtrujemy od aktualnej godziny
+    # todo: obcinanie godziny w prompcie do ai_api.py WAZNE!!! !!
     hourly_temp = data["hourly"]["temperature_2m"]
+    hourly_pressure = data["hourly"]["pressure_msl"]
+    precipitation = data["hourly"]["precipitation"]
+    precipitation_propability = data["hourly"]["precipitation_probability"]
+    snowfall = data["hourly"]["snowfall"]
+    rain = data["hourly"]["rain"]
 
     print(f"POGODA DLA {name.upper()}")
     print(f"tempeartura: {temperature}")
     print(f"wiatr: {wind} km/h")
+    print(f"snieg: {snowfall}")
+    print(f"deszcz: {rain}")
 
-    return Weather(temperature, wind, hourly_temp)
+    return Weather(temperature, wind, pressure, hourly_temp, hourly_pressure, precipitation, precipitation_propability, snowfall, rain, weather_code)
 
+def translate_weather_code(code):
+    code = str(code)
+    codes_dict = {
+        "0": "Bezchmurnie",
+        "1": "Przeważnie bezchmurnie",
+        "2": "Częściowe zachmurzenie",
+        "3": "Pochmurno",
+        "45": "Mgła",
+        "48": "Mgła osadzająca szadź",
+        "51": "Lekka mżawka",
+        "53": "Umiarkowana mżawka",
+        "55": "Gęsta mżawka",
+        "56": "Lekka marznąca mżawka",
+        "57": "Gęsta marznąca mżawka",
+        "61": "Lekki deszcz",
+        "63": "Umiarkowany deszcz",
+        "65": "Silny deszcz",
+        "66": "Lekki marznący deszcz",
+        "67": "Silny marznący deszcz",
+        "71": "Lekkie opady śniegu",
+        "73": "Umiarkowane opady śniegu",
+        "75": "Intensywne opady śniegu",
+        "77": "Śnieg ziarnisty",
+        "80": "Lekkie przelotne opady deszczu",
+        "81": "Umiarkowane przelotne opady deszczu",
+        "82": "Gwałtowne przelotne opady deszczu",
+        "85": "Lekkie przelotne opady śniegu",
+        "86": "Intensywne przelotne opady śniegu",
+        "95": "Burza",
+        "96": "Burza z lekkim gradem",
+        "97": "Silna burza",
+        "99": "Burza z silnym gradem"
+    }
+
+    return codes_dict[code]
