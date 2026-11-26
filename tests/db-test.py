@@ -56,7 +56,6 @@ with sqlite3.connect("test-db.db") as connection:
         task = (login, password)
 
         task_id = register_task(connection, task)
-        print(f"jebany task: {task_id}")
 
         connection.commit()
 

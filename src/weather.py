@@ -1,5 +1,5 @@
 class Weather:
-    def __init__(self, temperature, wind, pressure, hourly_temp, hourly_pressure, precipitation, precipitation_probability, snowfall, rain, weather_code,):
+    def __init__(self, temperature, wind, pressure, hourly_temp, hourly_pressure, precipitation, precipitation_probability, snowfall, rain, weather_code,current_hour):
         self.__temperature = temperature
         self.__wind = wind
         self.__hourly_temp = hourly_temp
@@ -10,6 +10,11 @@ class Weather:
         self.__snowfall = snowfall
         self.__rain = rain
         self.__weather_code = weather_code
+        self.__current_hour = current_hour
+
+    @property
+    def current_hour(self):
+        return self.__current_hour
 
     @property
     def weather_code(self):

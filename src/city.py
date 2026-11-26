@@ -10,7 +10,7 @@ class City:
         self.__lat = lat
         self.__lon = lon
         if not is_favorite:
-            self.is_favorite = json_manager.is_city_favorite(page.session.store.get("id"), name)
+            self.is_favorite = json_manager.is_city_favorite(page.session.store.get("id"), name, lat, lon)
         else:
             self.is_favorite = is_favorite
 
@@ -29,6 +29,3 @@ class City:
     @property
     def lon(self):
         return self.__lon
-
-    def __str__(self):
-        return f"jestem miastem {self.name}"

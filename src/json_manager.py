@@ -23,7 +23,9 @@ def load_json():
     try:
         with open(FILE_PATH, "r", encoding="utf-8") as my_file:
             return json.load(my_file)
-    except:
+    except Exception as e:
+        os.replace(FILE_PATH, FILE_PATH + ".backup") # backup uszkodzonego pliku
+        print(f"Błąd: {e}")
         return { }
 
 def save_json(data):
@@ -41,6 +43,9 @@ def save_user_activities(user_id, active_activities : list):
 
     save_json(data)
 
+def city_key(name, lat, lon):
+    return f"{name};{lat};{lon}"
+
 def get_fav_cities(user_id):
 
     if user_id is None:
@@ -55,15 +60,13 @@ def get_fav_cities(user_id):
 
     return info
 
-def is_city_favorite(user_id, name):
+def is_city_favorite(user_id, name, lat, lon):
     data = load_json()
 
     user_info = data.get(str(user_id), {})
     fav_cities = user_info.get("cities", {})
 
-    if name not in fav_cities.keys():
-        return False
-    return True
+    return city_key(name, lat, lon) in fav_cities
 
 def add_city(user_id, name, lat, lon, country, admin):
     data = load_json()
@@ -75,17 +78,17 @@ def add_city(user_id, name, lat, lon, country, admin):
     if "cities" not in user_info.keys():
         user_info["cities"] = {}
 
-    user_info["cities"][name] = [lon, lat, country, admin]
+    user_info["cities"][city_key(name, lat, lon)] = [lon, lat, country, admin]
 
     save_json(data)
 
-def remove_city(user_id, name):
+def remove_city(user_id, name, lat, lon):
     data = load_json()
 
     user_info = data.get(str(user_id), {})
 
     cities = user_info.get("cities", { })
-    cities.pop(name, None)
+    cities.pop(city_key(name, lat, lon), None)
 
     save_json(data)
 

@@ -3,20 +3,23 @@ from flet import MainAxisAlignment, CrossAxisAlignment
 import views
 import sqlite3
 import database_manager
+
+DATABASE_PATH = "./data/database1.db"
+
 def main(page: ft.Page):
 
     def on_logout_success():
-        body_container.content = login_view_type_shit
+        body_container.content = login_view
         page.update()
 
     def on_login_success():
         body_container.content = views.AccountView(page, on_logout_success)
         page.update()
-    #print("testuje cos, ", page.session.store.get("user"))
 
-    connection = sqlite3.connect("../tests/test-db3.db")
+    # tests: connection = sqlite3.connect("../tests/test-db3.db")
+    connection = sqlite3.connect(DATABASE_PATH)
     database_manager.connect_db(connection)
-    login_view_type_shit = views.AuthView(page, connection, on_login_success)
+    login_view = views.AuthView(page, connection, on_login_success)
     search_view = views.SearchView(page)
     body_container = ft.Container(content = search_view, expand = True,)
 
@@ -28,14 +31,18 @@ def main(page: ft.Page):
         if selected_index == 1:
             user = page.session.store.get("username")
             if not user:
-                body_container.content = login_view_type_shit
+                body_container.content = login_view
             else:
                 on_login_success()
         if selected_index == 2:
             favorites_view = views.FavoritesView(page)
             fav_cities = favorites_view.generate_fav_cities()
             favorites_view.draw_fav_cities(fav_cities)
-            body_container.content = favorites_view
+
+            if fav_cities:
+                body_container.content = favorites_view
+            else:
+                body_container.content = ft.Text("Brak ulubionych miast", size=18)
         page.update()
 
     navbar = ft.Tabs(selected_index = 0, on_change = on_navbar_change,

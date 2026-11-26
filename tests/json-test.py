@@ -31,6 +31,3 @@ choice = int(input("zapis(1) czy odczyt (2): "))
 if choice == 1:
     zapis()
 
-if choice == 2:
-    gowno = odczyt()
-    print(gowno)

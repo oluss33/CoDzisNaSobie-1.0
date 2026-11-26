@@ -18,11 +18,12 @@ def connect_db(connection):
 
 def add_user(connection, username, password):
 
+    password = password.strip()
+
     salt = bcrypt.gensalt()
 
     hashedpass = bcrypt.hashpw(password.encode("utf-8"), salt)
 
-    # TODO: HASH PASSWORD (SALT + STORE HASH)
     security_sql = """
     SELECT user_id FROM users WHERE user_name = ?"""
     register_sql = """INSERT INTO users (user_name, password) VALUES(?, ?)"""
@@ -32,13 +33,13 @@ def add_user(connection, username, password):
     cursor.execute(security_sql, (username, ))
 
     if cursor.fetchone() is not None:
-        print("jest juz taki uzytkownik!!!!!")
+        print("jest juz taki uzytkownik")
         return False
     cursor.execute(register_sql, (username, hashedpass.decode("utf-8")))
     connection.commit()
     return True
 
-def get_user_id(connection, login, password):
+def get_user_id(connection, login):
     get_sql = """
     SELECT user_id FROM users WHERE user_name = ?"""
 

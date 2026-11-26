@@ -7,17 +7,17 @@ import datetime
 
 HEADER = {"User-Agent": "CoDzisNaSobie/1.0"}
 
-def fetch_json(url):
+def build_request(url):
     req = urllib.request.Request(url, headers=HEADER)
     return req
-def find_city(city, page): # TODO: remove page from arguments, move checking to the find_weather in views.py
+def find_city(city, page):
     founds = []
 
     safe_city = urllib.parse.quote(city.encode("utf-8"))
 
     my_url = f"https://geocoding-api.open-meteo.com/v1/search?name={safe_city}&count=5&language=pl&format=json"
 
-    request = fetch_json(my_url)
+    request = build_request(my_url)
 
     try:
         with urllib.request.urlopen(request) as response:
@@ -27,6 +27,7 @@ def find_city(city, page): # TODO: remove page from arguments, move checking to 
         if "results" not in data or not data["results"]:
             print("brak wynikow")
             return
+
 
         print(f"znaleziono dla zapytania {city}:")
 
@@ -38,7 +39,6 @@ def find_city(city, page): # TODO: remove page from arguments, move checking to 
             admin1 = _city.get("admin1")
 
             founds.append(City(page, name, country, admin1, lat, lon))
-            # founds.append((name, country, admin1, lat, lon))
 
         print(founds)
 
@@ -51,7 +51,7 @@ def find_city(city, page): # TODO: remove page from arguments, move checking to 
 def get_weather(name, latitude, longitude):
     my_url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m,pressure_msl,weather_code&hourly=temperature_2m,pressure_msl,precipitation,precipitation_probability,snowfall,rain&timezone=auto&forecast_days=1"
 
-    request = fetch_json(my_url)
+    request = build_request(my_url)
 
     with urllib.request.urlopen(request, timeout=45) as response:
         data = json.loads(response.read().decode("utf-8"))
@@ -61,8 +61,6 @@ def get_weather(name, latitude, longitude):
     pressure = data["current"]["pressure_msl"]
     weather_code = data["current"]["weather_code"]
 
-   # hour = datetime.datetime.now().hour # opady filtrujemy od aktualnej godziny
-    # todo: obcinanie godziny w prompcie do ai_api.py WAZNE!!! !!
     hourly_temp = data["hourly"]["temperature_2m"]
     hourly_pressure = data["hourly"]["pressure_msl"]
     precipitation = data["hourly"]["precipitation"]
@@ -70,13 +68,15 @@ def get_weather(name, latitude, longitude):
     snowfall = data["hourly"]["snowfall"]
     rain = data["hourly"]["rain"]
 
+    current_hour = int(data["current"]["time"][11:13])  # godzina w API, wzgledem lat i lon, 11-12 wlacznie pozycja godizny
+
     print(f"POGODA DLA {name.upper()}")
     print(f"tempeartura: {temperature}")
     print(f"wiatr: {wind} km/h")
     print(f"snieg: {snowfall}")
     print(f"deszcz: {rain}")
 
-    return Weather(temperature, wind, pressure, hourly_temp, hourly_pressure, precipitation, precipitation_propability, snowfall, rain, weather_code)
+    return Weather(temperature, wind, pressure, hourly_temp, hourly_pressure, precipitation, precipitation_propability, snowfall, rain, weather_code, current_hour)
 
 def translate_weather_code(code):
     code = str(code)
@@ -112,4 +112,4 @@ def translate_weather_code(code):
         "99": "Burza z silnym gradem"
     }
 
-    return codes_dict[code]
+    return codes_dict.get(code, "Nieznany kod pogody")

@@ -35,13 +35,14 @@ ACTIVITY_HINTS = {
 '''
 
 def build_prompt(weather, active_activities):
+    current_hour = weather.current_hour
     lines =[
         f"Temperatura: {weather.temperature}°C",
         f"Wiatr: {weather.wind} km/h",
         f"Aktualne cisnienie: {weather.pressure} hPa",
-        f"Prognoza opadów: {weather.precipitation_probability}",
-        f"Suma opadów śniegu (cm): {weather.snowfall} (nie uwzględniaj przy ",
-        f"Suma opadów deszczu (mm): {weather.rain}",
+        f"Maksymalne prawdopodobienstwo opadow do konca dnia: {max(weather.precipitation_probability[current_hour:])}",
+        f"Suma opadów śniegu do konca dnia (cm): {sum(weather.snowfall[current_hour:])} ",
+        f"Suma opadów deszczu do konca dnia (mm): {sum(weather.rain[current_hour:])}",
     ]
 
     if weather.hourly_temp is not None:
@@ -74,5 +75,5 @@ def generate_suggestions(weather, active_activities):
         return response.text
     except Exception as e:
         print(f"błąd AI: {e}")
-        return f"Nie udało się teraz wygenerować rekomendacji (asystent AI jest chwilowo przeciążony). Spróbuj ponownie później."
+        return f"Nie udało się teraz wygenerować rekomendacji (asystent AI jest przeciążony). Spróbuj ponownie później."
 

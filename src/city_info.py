@@ -23,15 +23,6 @@ class CityCard(ft.Container):
         self.ink = True
         self.on_click = on_click
 
-        '''city_card = ft.Container(width=350,
-                content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,controls=[
-                        ft.Text(f"{city.name} ( {city.admin} )",weight=ft.FontWeight.BOLD, size=15),
-                        ft.Text(f"{city.country}", color=ft.Colors.GREY_400, size=12)]),
-                padding=12,
-                border_radius = 8,
-                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
-                ink=True,
-                on_click=self.choose_city(city)'''
 
 class WeatherDetails(ft.Column):
     def __init__(self, city, page, on_back=None):
@@ -45,13 +36,14 @@ class WeatherDetails(ft.Column):
         self.rain = weather.rain
         self.snowfall = weather.snowfall
         self.probability = weather.precipitation_probability
+        self.current_hour = weather.current_hour
         hourly_pressure = weather.hourly_pressure
         pressure = weather.pressure
-        text_color = ft.Colors.WHITE
+        '''text_color = ft.Colors.WHITE
         if pressure > 1020:
             text_color = ft.Colors.RED_400
         if pressure < 1000:
-            text_color = ft.Colors.YELLOW_400
+            text_color = ft.Colors.YELLOW_400'''
         hourly_temp = weather.hourly_temp
         self.weather_code = weather.weather_code
         self.my_chart = custom_charts.create_chart(hourly_temp)
@@ -72,35 +64,11 @@ class WeatherDetails(ft.Column):
         self.precipitation_tab = self.generate_precipitation(weather.precipitation)
         self.controls = [self.navbar, self.weather_tab, ft.Row(alignment=ft.MainAxisAlignment.CENTER, controls=[self.favorites_btn, self.back_btn])]
 
-        '''
-        self.weather_container.controls.clear()
-            self.columns.controls.clear()
-            name = city.name
-            lat = city.lat
-            lon = city.lon
-            weather = api.get_weather(name, lat, lon)
-
-            temperature = weather.temperature
-            wind = weather.wind
-            hourly_temp = weather.hourly_temp
-
-            my_chart = custom_charts.create_chart(hourly_temp)
-            info_card = ft.Container(width=600, padding=16, border_radius=10, content=ft.Row(width=600, alignment=ft.MainAxisAlignment.CENTER, controls=[ft.Container(content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,controls=[
-                        ft.Text(f"{name}", weight=ft.FontWeight.BOLD, size=23),
-                        ft.Text(f"Temperatura: {temperature}°C", size=16),
-                        ft.Text(f"Wiatr: {wind} km / h", size=16),
-                        my_chart]))]))
-            self.favorites_btn = ft.Button(icon=ft.Icons.STAR, color=ft.Colors.YELLOW_400 if city.is_favorite else ft.Colors.GREY_400, on_click=self.favorite_city_handler(city))
-
-
-            self.weather_container.controls.append(info_card)
-            self.weather_container.controls.append(self.favorites_btn)
-            self.my_page.update()
-     
-        '''
 
     def generate_weather_content(self, pressure, tips):
-        current_hour = datetime.datetime.now().hour
+
+        current_hour = self.current_hour
+
         local_content = ft.Column(horizontal_alignment=ft.CrossAxisAlignment.CENTER, width=800, alignment=ft.MainAxisAlignment.CENTER,controls=[
             ft.Text(f"{self.city.name}", weight=ft.FontWeight.BOLD, size=23),
             ft.Text(size=18,
@@ -120,7 +88,7 @@ class WeatherDetails(ft.Column):
                 ft.TextSpan(f"{pressure} hPa")
             ]),
             ft.Text(size=18,spans=[
-                ft.TextSpan("Szansa opadów: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
+                ft.TextSpan("Szansa opadów (od teraz): ", style=ft.TextStyle(weight=ft.FontWeight.BOLD)),
                 ft.TextSpan(f"{max(self.probability[current_hour:])} %")
             ]),
             ft.Text(size=18, spans=[
@@ -152,10 +120,16 @@ class WeatherDetails(ft.Column):
         lat = city.lat
         lon = city.lon
         def on_click_handler(e):
+
+            user_id = self.my_page.session.store.get("id")
+            if user_id is None:
+                self.my_page.show_dialog(ft.SnackBar(content=ft.Text("Zaloguj się aby zapisać ulubione miasto")))
+                return
+
             if not city.is_favorite:
                 json_manager.add_city(self.my_page.session.store.get("id"), city.name, city.lat, city.lon, city.country, city.admin)
             else:
-                json_manager.remove_city(self.my_page.session.store.get("id"), name)
+                json_manager.remove_city(self.my_page.session.store.get("id"), name, lat, lon)
 
             city.is_favorite = not city.is_favorite
             self.favorites_btn.color = ft.Colors.YELLOW_400 if city.is_favorite else ft.Colors.GREY_400

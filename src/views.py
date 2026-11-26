@@ -33,8 +33,8 @@ class AuthView(ft.Column):
             )
         )
         self.icon = ft.Icon(ft.Icons.LOCK_PERSON_OUTLINED, size=80, color=ft.Colors.WHITE)
-        self.usernameField = ft.CupertinoTextField(placeholder_text="Username")
-        self.passwordField = ft.CupertinoTextField(placeholder_text="Password", password=True)
+        self.usernameField = ft.CupertinoTextField(placeholder_text="Nazwa użytkownika")
+        self.passwordField = ft.CupertinoTextField(placeholder_text="Hasło", password=True)
         self.btn = ft.Button(content="Zarejestruj się", on_click=self.auth_user_click)
         self.controls = [self.navbar_test, self.header_text, self.icon,self.usernameField, self.passwordField, self.btn]
 
@@ -66,11 +66,14 @@ class AuthView(ft.Column):
             try:
                 if database_manager.add_user(self.connection, username, password):
                     self.my_page.show_dialog(ft.SnackBar(
-                        content=ft.Text("Zarejestrowano pomyslnie. Mozesz sie od teraz zalogowac.", color=ft.Colors.WHITE),
+                        content=ft.Text("Zarejestrwano pomyslnie. Mozesz sie od teraz zalogowac.", color=ft.Colors.WHITE),
                         bgcolor=ft.Colors.GREEN_700
                     ))
+                    self.usernameField.value = ""
+                    self.passwordField.value = ""
+                    self.my_page.update()
                 else:
-                    self.my_page.show_dialog(ft.SnackBar(content=ft.Text("Istnieje juz taka nazwa uzytkownika w bazie danych. Sprobuj ponownie.", color=ft.Colors.WHITE, bgcolor=ft.Colors.AMBER_800)))
+                    self.my_page.show_dialog(ft.SnackBar(content=ft.Text("Istnieje juz taka nazwa uzytkownika w bazie danych. Sprobuj ponownie.", color=ft.Colors.WHITE), bgcolor=ft.Colors.AMBER_800))
             except Exception as e:
                 print("cos nie tak", e)
         else:
@@ -80,10 +83,13 @@ class AuthView(ft.Column):
                     bgcolor=ft.Colors.GREEN_700
                 ))
                 self.my_page.session.store.set("username", username)
-                self.my_page.session.store.set("id", database_manager.get_user_id(self.connection, username, password))
+                self.my_page.session.store.set("id", database_manager.get_user_id(self.connection, username))
 
                 if self.on_login_success:
                     self.on_login_success()
+                self.usernameField.value = ""
+                self.passwordField.value = ""
+                self.my_page.update()
 
             else:
                 self.my_page.show_dialog(ft.SnackBar(content=ft.Text("Bledne haslo lub nazwa uzytkownika!", color=ft.Colors.WHITE, ), bgcolor=ft.Colors.RED_400))
@@ -114,7 +120,6 @@ class AccountView(ft.Column):
             "Częste przeziębienia": "often_sick"
         }
         self.activity_buttons = []
-        # self.saved_activites = []
 
         for activity in self.activities_dict.keys():
             activity_btn = ft.Button(content=activity, color=ft.Colors.BLACK if self.activities_dict[activity] in self.saved_activities else ft.Colors.WHITE, width=200, bgcolor=None if not self.activities_dict[activity] in self.saved_activities else ft.Colors.GREEN_700, on_click=self.toggle_activity(activity))
@@ -196,19 +201,6 @@ class SearchView(ft.Column):
             return
 
         for city in founds:
-
-
-            '''city_card = ft.Container(width=350,
-                content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,controls=[
-                        ft.Text(f"{city.name} ( {city.admin} )",weight=ft.FontWeight.BOLD, size=15),
-                        ft.Text(f"{city.country}", color=ft.Colors.GREY_400, size=12)]),
-                padding=12,
-                border_radius = 8,
-                bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
-                ink=True,
-                on_click=self.choose_city(city)
-            )'''
-
             city_card = CityCard(city, self.choose_city(city))
 
             self.columns.controls.append(city_card)
@@ -220,23 +212,7 @@ class SearchView(ft.Column):
         def on_click_handler(e):
             self.weather_container.controls.clear()
             self.columns.controls.clear()
-            ''' name = city.name
-            lat = city.lat
-            lon = city.lon
-            weather = api.get_weather(name, lat, lon)
 
-            temperature = weather.temperature
-            wind = weather.wind
-            hourly_temp = weather.hourly_temp
-
-            my_chart = custom_charts.create_chart(hourly_temp)
-            info_card = ft.Container(width=600, padding=16, border_radius=10, content=ft.Row(width=600, alignment=ft.MainAxisAlignment.CENTER, controls=[ft.Container(content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,controls=[
-                        ft.Text(f"{name}", weight=ft.FontWeight.BOLD, size=23),
-                        ft.Text(f"Temperatura: {temperature}°C", size=16),
-                        ft.Text(f"Wiatr: {wind} km / h", size=16),
-                        my_chart]))]))
-
-            '''
             weather_details = WeatherDetails(city, self.my_page, on_back=self.on_back)
             self.weather_container.controls.append(weather_details)
             self.my_page.update()
@@ -252,7 +228,7 @@ class FavoritesView(ft.Column):
         self.my_page = page
         self.alignment = ft.MainAxisAlignment.CENTER
         self.text_test = ft.Text("Ulubione miasta", size=24, weight=ft.FontWeight.BOLD)
-        self.search_container = ft.Column(width=600, height=600, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+        self.search_container = ft.Column(width=1000, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
         self.controls = [self.search_container]
         fav_cities = self.generate_fav_cities()
         self.draw_fav_cities(fav_cities)
@@ -266,7 +242,7 @@ class FavoritesView(ft.Column):
         fav_cities = []
 
         for key, value in cities.items():
-            name = key
+            name = key.split(";")[0]
             lon = value[0]
             lat = value[1]
             country = value[2]
